@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
-from models import db
+from models import db, User, Tarea
 #from models import Person
 
 app = Flask(__name__)
@@ -37,6 +37,46 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+@app.route("/todos/<username>", methods=["GET", "POST", "PUT", "DELETE"])
+def handle_tarea(username):
+    headers = {
+        "Content-Type": "application/json"
+    }
+    requesting_user = User.query.filter_by(username=username).all()
+    if request.method == "GET":
+        print("hello i'm working!")
+        if len(requesting_user) > 0:
+            print("user exists")
+            user_todo_list = Tarea.query.filter_by(user_username=username).all()
+            response_body = []
+            for tareas in user_todo_list:
+                response_body.append(tareas.serialize())
+            status_code = 200
+        else:
+            print("User doesn't exist")
+            response_body={
+                "status": "HTTP_404_NOT_FOUND. User does not exist"
+            }
+            status_code = 404
+    elif request.method == "POST":
+        print("creating user con sample task")
+
+        if len(requesting_user) > 0:
+            response_body = {
+                "status": "HTTP_400_BAD_REQUEST. User cannot be created again..."
+            }
+            status_code = 400
+
+        else:
+            print("creating user with this username")
+            new_user = User(username)
+            db.session.add(new_user)
+            sample_todo = Tarea("Toma agua", username)
+            db.session.commit()
+            response_body = {
+                "status": "HTTP_200_OK. Ok"
+            }
+            status_code = 200
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

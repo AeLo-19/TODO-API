@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for, make_response
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
@@ -37,8 +37,8 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
-@app.route("/todos/<username>", methods=["GET", "POST", "PUT", "DELETE"])
-def handle_tarea(username):
+@app.route("/tareas/<username>", methods=["GET", "POST", "PUT", "DELETE"])
+def handle_tareas(username):
     headers = {
         "Content-Type": "application/json"
     }
@@ -58,6 +58,8 @@ def handle_tarea(username):
                 "status": "HTTP_404_NOT_FOUND. User does not exist"
             }
             status_code = 404
+
+
     elif request.method == "POST":
         print("creating user con sample task")
 
@@ -77,6 +79,14 @@ def handle_tarea(username):
                 "status": "HTTP_200_OK. Ok"
             }
             status_code = 200
+
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
+    
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
